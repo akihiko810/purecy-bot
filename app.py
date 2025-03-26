@@ -11,6 +11,7 @@ line_channel_access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 # 最新のOpenAI API形式を使ったメッセージ送信関数
 def handle_message(user_message, reply_token):
+    print("🛠 handle_message() 発火しました！")
     from openai import OpenAI
     client = OpenAI(api_key=openai_api_key)
 
@@ -22,7 +23,7 @@ def handle_message(user_message, reply_token):
     )
 
     reply_text = chat_completion.choices[0].message.content
-    print("💬 OpenAIの応答:", reply_text)  # ← ここを追加
+    print("💬 OpenAIの応答:", reply_text)
 
     reply_to_line(reply_text, reply_token)
 
