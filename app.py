@@ -39,20 +39,15 @@ def reply_to_line(reply_text, reply_token):
 def webhook():
     try:
         data = request.get_json()
-        event = data["events"][0]
+        events = data.get("events", [])
 
-        # メッセージイベントかつテキストメッセージかを確認
-        if event["type"] == "message" and event["message"]["type"] == "text":
-            user_message = event["message"]["text"]
-            reply_token = event["replyToken"]
+        for event in events:
+            if event.get("type") == "message" and event["message"].get("type") == "text":
+                user_message = event["message"]["text"]
+                reply_token = event["replyToken"]
+                threading.Thread(target=handle_message, args=(user_message, reply_token)).start()
 
-            # OpenAIの処理を別スレッドで実行
-            threading.Thread(target=handle_message, args=(user_message, reply_token)).start()
-        else:
-            print("非テキストメッセージのイベントです。処理をスキップします。")
-
+        return "OK"
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"⚠️ Error: {e}")
         return "Internal Server Error", 500
-
-    return "OK"
