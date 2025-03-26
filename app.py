@@ -12,28 +12,25 @@ LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 def webhook():
     try:
         data = request.get_json()
+        user_message = data["events"][0]["message"]["text"]
+        reply_token = data["events"][0]["replyToken"]
 
-        events = data.get("events", [])
-        if not events:
-            return "No events", 200
-
-        event = events[0]
-        user_message = event.get("message", {}).get("text")
-        reply_token = event.get("replyToken")
-
-        if not user_message or not reply_token:
-            return "Missing message or token", 200
-
-        response = openai.ChatCompletion.create(
+        # ✅ 新しい OpenAI 形式（v1.0.0 以降）
+        client = openai.OpenAI(api_key=openai.api_key)
+        chat_completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": user_message}]
+            messages=[
+                {"role": "user", "content": user_message}
+            ]
         )
-        reply_text = response.choices[0].message.content
+
+        reply_text = chat_completion.choices[0].message.content
 
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {LINE_CHANNEL_ACCESS_TOKEN}"
         }
+
         body = {
             "replyToken": reply_token,
             "messages": [{"type": "text", "text": reply_text}]
@@ -44,8 +41,7 @@ def webhook():
             headers=headers,
             json=body
         )
-
-        return "OK", 200
+        return "OK"
 
     except Exception as e:
         print(f"Error: {e}")
