@@ -66,8 +66,8 @@ turn = user_sessions[user_id].get("turn", 1)
     reply_text = chat_completion.choices[0].message.content
     print("🐏 OpenAIの応答:", reply_text)
 
-    reply_to_line(reply_text, reply_token)    
-    return
+reply_to_line(reply_text, reply_token)    
+return
     # プレシーのカスタムプロンプトを system メッセージとして設定
 prompt = f"""
 【ユーザー情報】
