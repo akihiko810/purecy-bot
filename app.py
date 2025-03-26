@@ -51,10 +51,6 @@ if user_sessions[user_id]["turn"] > 8:
 
     # セッションを削除（初期化）
     del user_sessions[user_id]
-    return
-    from openai import OpenAI
-    client = OpenAI(api_key=openai_api_key)
-
 name = user_sessions[user_id].get("name")
 week = user_sessions[user_id].get("week")
 turn = user_sessions[user_id].get("turn", 1)
@@ -184,7 +180,12 @@ prompt = f"""
     reply_text = chat_completion.choices[0].message.content
     print("🐏 OpenAIの応答:", reply_text)
 
-    reply_to_line(reply_text, reply_token)
+    reply_to_line(reply_text, reply_token)    
+    return
+    from openai import OpenAI
+    client = OpenAI(api_key=openai_api_key)
+
+
 
 def reply_to_line(reply_text, reply_token):
     headers = {
