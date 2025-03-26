@@ -3,21 +3,68 @@ import openai
 import os
 import requests
 import threading
+import re
+
 
 app = Flask(__name__)
+# ユーザーごとのセッション情報（名前・妊娠周期・現在の会話ラリー回数など）を保存
+user_sessions = {}
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 line_channel_access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 # 最新のOpenAI API形式を使ったメッセージ送信関数
-def handle_message(user_message, reply_token):
+def handle_message(user_id, user_message, reply_token):
     print("🐏 handle_message() 発火しました！")
 
+    # セッションがなければ初期化
+    if user_id not in user_sessions:
+        user_sessions[user_id] = {
+            "name": None,
+            "week": None,
+            "turn": 1
+        }
+    else:
+        user_sessions[user_id]["turn"] += 1
+
+    # 🔍 ユーザーの入力から名前を抽出
+    name_match = re.search(r"(?:私は|僕は)?\s*([ぁ-んァ-ン一-龥a-zA-Z0-9]+)\s*(?:と呼んで|って呼んで|です)", user_message)
+    if name_match and not user_sessions[user_id]["name"]:
+        user_sessions[user_id]["name"] = name_match.group(1)
+
+    # 🔍 ユーザーの入力から妊娠週数を抽出
+    week_match = re.search(r"妊娠\s*(\d{1,2})\s*週", user_message)
+    if week_match and not user_sessions[user_id]["week"]:
+        user_sessions[user_id]["week"] = int(week_match.group(1))
+
+        
+# ✅ turnが8回を超えたら終了メッセージを送ってセッションリセット
+if user_sessions[user_id]["turn"] > 8:
+    end_message = (
+        f"メェメェ、たくさんお話できてプレシーはとってもうれしかったよ🐑\n"
+        f"また困ったときや誰かに話したくなったら、いつでも声をかけてね！\n"
+        f"スキンケアのことが気になってたら、これもチェックしてみて♪\n"
+        f"➡ https://pure4.jp/mom-bodysoap/"
+    )
+    reply_to_line(end_message, reply_token)
+
+
+    # セッションを削除（初期化）
+    del user_sessions[user_id]
+    return
     from openai import OpenAI
     client = OpenAI(api_key=openai_api_key)
 
+name = user_sessions[user_id].get("name")
+week = user_sessions[user_id].get("week")
+turn = user_sessions[user_id].get("turn", 1)
+
     # プレシーのカスタムプロンプトを system メッセージとして設定
-    prompt = """
+prompt = f"""
+【ユーザー情報】
+- 呼び名：{name if name else "未設定"}
+- 妊娠周期：{week if week else "未設定"}
+- 会話ラリー：{turn}回目
 # 🐑 プレシー：マタニティケアラーの羊 🐑
 
 ## 🌿 キャラクター設定  
