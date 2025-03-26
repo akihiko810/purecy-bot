@@ -21,25 +21,32 @@ def reply_to_line(reply_token, reply_text):
     requests.post("https://api.line.me/v2/bot/message/reply", headers=headers, json=body)
 
 def handle_message(user_message, reply_token):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": user_message}]
-    )
-    reply_text = response.choices[0].message.content
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": user_message}]
+        )
+        reply_text = response.choices[0].message.content
+    except Exception as e:
+        print("OpenAI Error:", e)
+        reply_text = "申し訳ありません、ただいまアクセスが集中しています。時間をおいて再度お試しください。"
+
     reply_to_line(reply_token, reply_text)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.get_json()
     try:
-        user_message = data["events"][0]["message"]["text"]
-        reply_token = data["events"][0]["replyToken"]
+        events = data.get("events", [])
+        if len(events) == 0 or events[0].get("type") != "message":
+            return "OK"
 
-        # OpenAIへの処理を別スレッドで非同期に実行
+        user_message = events[0]["message"]["text"]
+        reply_token = events[0]["replyToken"]
+
         threading.Thread(target=handle_message, args=(user_message, reply_token)).start()
 
     except Exception as e:
-        print(f"Error: {e}")
+        print("Webhook Error:", e)
     
-    # LINEに即時200 OKを返す
     return "OK"
