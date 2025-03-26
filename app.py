@@ -182,7 +182,7 @@ prompt = f"""
     )
 
     reply_text = chat_completion.choices[0].message.content
-    print("🍼 OpenAIの応答:", reply_text)
+    print("🐏 OpenAIの応答:", reply_text)
 
     reply_to_line(reply_text, reply_token)
 
