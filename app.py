@@ -36,7 +36,21 @@ def reply_to_line(reply_text, reply_token):
         "replyToken": reply_token,
         "messages": [{"type": "text", "text": reply_text}]
     }
-    requests.post("https://api.line.me/v2/bot/message/reply", headers=headers, json=body)
+
+    # ⬇️ ログを追加
+    print("📤 LINEへの返信処理開始")
+    print("📨 返信内容:", reply_text)
+
+    # ⬇️ エラーが起きた場合も見逃さないよう try-except を追加
+    try:
+        response = requests.post(
+            "https://api.line.me/v2/bot/message/reply",
+            headers=headers,
+            json=body
+        )
+        print("📬 LINEレスポンス:", response.status_code, response.text)
+    except Exception as e:
+        print("❌ LINE送信エラー:", e)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
