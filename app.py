@@ -20,7 +20,9 @@ def handle_message(user_message, reply_token):
             {"role": "user", "content": user_message}
         ]
     )
+
     reply_text = chat_completion.choices[0].message.content
+    print("💬 OpenAIの応答:", reply_text)  # ← ここを追加
 
     reply_to_line(reply_text, reply_token)
 
