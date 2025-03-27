@@ -50,23 +50,23 @@ def handle_message(user_id, user_message, reply_token):
         del user_sessions[user_id]
         return
 
-# セッション情報を取得
-name = user_sessions[user_id].get("name")
-week = user_sessions[user_id].get("week")
-turn = user_sessions[user_id].get("turn", 1)
+    # セッション情報を取得
+    name = user_sessions[user_id].get("name")
+    week = user_sessions[user_id].get("week")
+    turn = user_sessions[user_id].get("turn", 1)
 
-# OpenAI API呼び出し
-chat_completion = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": prompt},
-        {"role": "user", "content": user_message}
-    ]
-)
+    # OpenAI API呼び出し
+    chat_completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_message}
+        ]
+    )
 
-reply_text = chat_completion.choices[0].message.content
-print("🐏 OpenAIの応答:", reply_text)
-reply_to_line(reply_text, reply_token)
+    reply_text = chat_completion.choices[0].message.content
+    print("🐏 OpenAIの応答:", reply_text)
+    reply_to_line(reply_text, reply_token)
     
     # プレシーのカスタムプロンプトを system メッセージとして設定
 prompt = f"""
