@@ -215,24 +215,24 @@ def reply_to_line(reply_text, reply_token):
 def webhook():
     try:
         data = request.get_json()
-        print("✅ 受信データ:", data)  # ← この行を追加
+        print("✅ 受信データ:", data)
         events = data.get("events", [])
 
-for event in events:
-    if event.get("type") == "message" and event["message"].get("type") == "text":
-        user_id = event["source"]["userId"]
-        user_message = event["message"]["text"]
-        reply_token = event["replyToken"]
+        for event in events:
+            if event.get("type") == "message" and event["message"].get("type") == "text":
+                user_id = event["source"]["userId"]
+                user_message = event["message"]["text"]
+                reply_token = event["replyToken"]
 
-        print("💬 ユーザーからのメッセージ:", user_message)
-        print("🔁 reply_token:", reply_token)
+                print("💬 ユーザーからのメッセージ:", user_message)
+                print("🔁 reply_token:", reply_token)
 
-        threading.Thread(
-            target=handle_message,
-            args=(user_id, user_message, reply_token),
-        ).start()
+                threading.Thread(
+                    target=handle_message,
+                    args=(user_id, user_message, reply_token),
+                ).start()
 
-        return "OK"
+        return "OK"  # すべてのイベント処理後に返す
     except Exception as e:
         print(f"❌ Error: {e}")
         return "Internal Server Error", 500
