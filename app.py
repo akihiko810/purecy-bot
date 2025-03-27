@@ -218,17 +218,19 @@ def webhook():
         print("✅ 受信データ:", data)  # ← この行を追加
         events = data.get("events", [])
 
-        for event in events:
-            if event.get("type") == "message" and event["message"].get("type") == "text":
-                user_message = event["message"]["text"]
-                reply_token = event["replyToken"]
-                print("🟢 ユーザーからのメッセージ:", user_message)  # ← 追加
-                print("🔁 reply_token:", reply_token)  # ← 追加
+for event in events:
+    if event.get("type") == "message" and event["message"].get("type") == "text":
+        user_id = event["source"]["userId"]
+        user_message = event["message"]["text"]
+        reply_token = event["replyToken"]
 
-                threading.Thread(
-                    target=handle_message,
-                    args=(user_message, reply_token)
-                ).start()
+        print("💬 ユーザーからのメッセージ:", user_message)
+        print("🔁 reply_token:", reply_token)
+
+        threading.Thread(
+            target=handle_message,
+            args=(user_id, user_message, reply_token),
+        ).start()
 
         return "OK"
     except Exception as e:
