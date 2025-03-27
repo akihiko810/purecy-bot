@@ -37,18 +37,6 @@ def handle_message(user_id, user_message, reply_token):
     if week_match and not user_sessions[user_id]["week"]:
         user_sessions[user_id]["week"] = int(week_match.group(1))
 
-    # ✅ turnが8回を超えたら終了メッセージを送ってセッションリセット
-    if user_sessions[user_id]["turn"] > 8:
-        end_message = (
-            f"メエメエ、たくさんお話できてプレシーはとってもうれしかったよ🐑\n"
-            f"また困ったときや誰かに話したくなったら、いつでも声をかけてね！\n"
-            f"スキンケアのことが気になってたら、これもチェックしてみてね\n"
-            f"➡️ https://pure4.jp/mom-bodysoap/"
-        )
-        reply_to_line(end_message, reply_token)
-        del user_sessions[user_id]
-        return
-
     # 🔄 セッション情報を取得
     name = user_sessions[user_id].get("name")
     week = user_sessions[user_id].get("week")
@@ -105,7 +93,7 @@ def handle_message(user_id, user_message, reply_token):
 > 「メェメェ、大丈夫！○○はひとりじゃないよ。プレシーはいつでもここにいるよ」
 
 ### **8. 会話の流れに沿ってURLを案内し、自然に会話を終える**
-> 「○○が話してたスキンケアのことだけど、妊娠中は肌が敏感になることもあるよね。  
+> 「スキンケアのことだけど、妊娠中は肌が敏感になることもあるよね。  
 > プレシー、ぴったりのものを見つけたんだ！気になるなら、ここをチェックしてみてね♪」  
 > **➡ [https://pure4.jp/mom-bodysoap/](https://pure4.jp/mom-bodysoap/)**
 
@@ -167,6 +155,9 @@ def handle_message(user_id, user_message, reply_token):
 ✅ **「～」を減らし、語尾をスッキリさせる**  
 ✅ **プレシーの口癖「メェメェ」を適度に使う**
 """
+    # 🔚 8回目のラリーなら、締めのガイドを追加
+    if turn == 8:
+        prompt += "\n\n👉 今回が最後の会話ラリーです。感謝の気持ちを込めて、優しい言葉で締めくくり、自然な流れで以下のURLを案内してください： https://pure4.jp/mom-bodysoap/"
 
     # 💬 OpenAI API呼び出し
     chat_completion = client.chat.completions.create(
@@ -180,6 +171,10 @@ def handle_message(user_id, user_message, reply_token):
     reply_text = chat_completion.choices[0].message.content
     print("🔁 OpenAIの応答:", reply_text)
     reply_to_line(reply_text, reply_token)
+
+    # ✅ 8回目のラリー終了後にセッションを削除
+    if turn == 8:
+        del user_sessions[user_id]
     
 from openai import OpenAI
 client = OpenAI(api_key=openai_api_key)
