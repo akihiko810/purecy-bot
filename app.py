@@ -40,14 +40,12 @@ def handle_message(user_id, user_message, reply_token):
     # ✅ turnが8回を超えたら終了メッセージを送ってセッションリセット
     if user_sessions[user_id]["turn"] > 8:
         end_message = (
-            f"〆メェメェ、たくさんお話できてプレシーはとってもうれしかったよ🐏\n"
+            f"メエメエ、たくさんお話できてプレシーはとってもうれしかったよ🐑\n"
             f"また困ったときや誰かに話したくなったら、いつでも声をかけてね！\n"
             f"スキンケアのことが気になってたら、これもチェックしてみてね\n"
-            f"🔗 https://pure4.jp/mom-bodysoap/"
+            f"➡️ https://pure4.jp/mom-bodysoap/"
         )
         reply_to_line(end_message, reply_token)
-
-        # セッション削除と処理終了
         del user_sessions[user_id]
         return
 
