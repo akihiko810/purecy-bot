@@ -46,9 +46,9 @@ def handle_message(user_id, user_message, reply_token):
             f"➡️ https://pure4.jp/mom-bodysoap/"
         )
         reply_to_line(end_message, reply_token)
-# セッションを削除（初期化）
-del user_sessions[user_id]
-return
+        # セッションを削除（初期化）
+        del user_sessions[user_id]
+        return
 
 # セッション情報を取得
 name = user_sessions[user_id].get("name")
