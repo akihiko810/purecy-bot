@@ -39,35 +39,37 @@ def handle_message(user_id, user_message, reply_token):
 
         
 # ✅ turnが8回を超えたら終了メッセージを送ってセッションリセット
-if user_sessions[user_id]["turn"] > 8:
-    end_message = (
-        f"メェメェ、たくさんお話できてプレシーはとってもうれしかったよ🐑\n"
-        f"また困ったときや誰かに話したくなったら、いつでも声をかけてね！\n"
-        f"スキンケアのことが気になってたら、これもチェックしてみて♪\n"
-        f"➡ https://pure4.jp/mom-bodysoap/"
-    )
-    reply_to_line(end_message, reply_token)
+    if user_sessions[user_id]["turn"] > 8:
+        end_message = (
+            f"メェメェ、たくさんお話できてプレシーはとってもうれしかったよ🐑\n"
+            f"また困ったときや誰かに話したくなったら、いつでも声をかけてね！\n"
+            f"スキンケアのことが気になってたら、これもチェックしてみてね\n"
+            f"➡️ https://pure4.jp/mom-bodysoap/"
+        )
+        reply_to_line(end_message, reply_token)
 
-
-    # セッションを削除（初期化）
+        # セッション削除と処理終了
     del user_sessions[user_id]
     return
-name = user_sessions[user_id].get("name")
-week = user_sessions[user_id].get("week")
-turn = user_sessions[user_id].get("turn", 1)
 
-chat_completion = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": prompt},
-        {"role": "user", "content": user_message}
-    ]
-)
+    # セッション情報を取得
+    name = user_sessions[user_id].get("name")
+    week = user_sessions[user_id].get("week")
+    turn = user_sessions[user_id].get("turn", 1)
 
-reply_text = chat_completion.choices[0].message.content
-print("🐏 OpenAIの応答:", reply_text)
+    # OpenAI API呼び出し
+    chat_completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_message}
+        ]
+    )
 
-reply_to_line(reply_text, reply_token)    
+    reply_text = chat_completion.choices[0].message.content
+    print("🐑 OpenAIの応答:", reply_text)
+    reply_to_line(reply_text, reply_token)
+
 
     # プレシーのカスタムプロンプトを system メッセージとして設定
 prompt = f"""
