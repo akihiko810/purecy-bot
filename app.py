@@ -54,22 +54,8 @@ def handle_message(user_id, user_message, reply_token):
     week = user_sessions[user_id].get("week")
     turn = user_sessions[user_id].get("turn", 1)
 
-    # 💬 OpenAI API呼び出し
-    chat_completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": user_message}
-        ]
-    )
-
-    reply_text = chat_completion.choices[0].message.content
-    print("🔁 OpenAIの応答:", reply_text)
-    reply_to_line(reply_text, reply_token)
-
-    
-# プレシーのカスタムプロンプトを system メッセージとして設定
-prompt = f"""
+    # ✅ プレシーのカスタムプロンプト（関数内に定義）
+    prompt = f"""
 【ユーザー情報】
 - 呼び名：{name if name else "未設定"}
 - 妊娠周期：{week if week else "未設定"}
@@ -182,7 +168,19 @@ prompt = f"""
 ✅ **プレシーの口癖「メェメェ」を適度に使う**
 """
 
+    # 💬 OpenAI API呼び出し
+    chat_completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_message}
+        ]
+    )
 
+    reply_text = chat_completion.choices[0].message.content
+    print("🔁 OpenAIの応答:", reply_text)
+    reply_to_line(reply_text, reply_token)
+    
 from openai import OpenAI
 client = OpenAI(api_key=openai_api_key)
 
