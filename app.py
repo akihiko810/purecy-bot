@@ -49,8 +49,8 @@ def handle_message(user_id, user_message, reply_token):
         reply_to_line(end_message, reply_token)
 
         # セッション削除と処理終了
-    del user_sessions[user_id]
-    return
+    　　del user_sessions[user_id]
+    　　return
 
     # セッション情報を取得
     name = user_sessions[user_id].get("name")
