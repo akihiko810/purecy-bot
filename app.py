@@ -183,7 +183,7 @@ prompt = f"""
 """
 
 
-    from openai import OpenAI
+from openai import OpenAI
     client = OpenAI(api_key=openai_api_key)
 
 
