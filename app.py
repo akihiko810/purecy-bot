@@ -37,20 +37,19 @@ def handle_message(user_id, user_message, reply_token):
     if week_match and not user_sessions[user_id]["week"]:
         user_sessions[user_id]["week"] = int(week_match.group(1))
 
-        
-# ✅ turnが8回を超えたら終了メッセージを送ってセッションリセット
+    # ✅ turnが8回を超えたら終了メッセージを送ってセッションリセット
     if user_sessions[user_id]["turn"] > 8:
         end_message = (
-            f"メェメェ、たくさんお話できてプレシーはとってもうれしかったよ🐑\n"
+            f"〆メェメェ、たくさんお話できてプレシーはとってもうれしかったよ🐏\n"
             f"また困ったときや誰かに話したくなったら、いつでも声をかけてね！\n"
             f"スキンケアのことが気になってたら、これもチェックしてみてね\n"
-            f"➡️ https://pure4.jp/mom-bodysoap/"
+            f"🔗 https://pure4.jp/mom-bodysoap/"
         )
         reply_to_line(end_message, reply_token)
 
         # セッション削除と処理終了
-    　　del user_sessions[user_id]
-    　　return
+        del user_sessions[user_id]
+        return
 
     # セッション情報を取得
     name = user_sessions[user_id].get("name")
@@ -67,10 +66,9 @@ def handle_message(user_id, user_message, reply_token):
     )
 
     reply_text = chat_completion.choices[0].message.content
-    print("🐑 OpenAIの応答:", reply_text)
+    print("🐏 OpenAIの応答:", reply_text)
     reply_to_line(reply_text, reply_token)
-
-
+    
     # プレシーのカスタムプロンプトを system メッセージとして設定
 prompt = f"""
 【ユーザー情報】
