@@ -263,20 +263,20 @@ def webhook():
         print("✅ 受信データ:", data)
         events = data.get("events", [])
 
-for event in events:
-    if event.get("type") == "message" and event["message"].get("type") == "text":
-        user_id = event["source"]["userId"]
-        user_message = event["message"]["text"]
-        reply_token = event["replyToken"]
+    for event in events:
+        if event.get("type") == "message" and event["message"].get("type") == "text":
+            user_id = event["source"]["userId"]
+            user_message = event["message"]["text"]
+            reply_token = event["replyToken"]
 
-        # 👇 ステータス確認コマンドを処理（早期 return で処理分岐）
-        if user_message in ["今何週？", "妊娠週数は？", "妊娠何週？"]:
-            week = user_sessions.get(user_id, {}).get("week")
-            if week:
-                reply_to_line(f"🐏 現在の妊娠週数は「{week}週」だよ。", reply_token)
-            else:
-                reply_to_line("🐏 ごめんね、まだ妊娠週数は聞けていないの。", reply_token)
-            return "OK"
+            # 👇 ステータス確認コマンドを処理（早期 return で処理分岐）
+            if user_message in ["今何週？", "妊娠週数は？", "妊娠何週？"]:
+                week = user_sessions.get(user_id, {}).get("week")
+                if week:
+                    reply_to_line(f"🐏 現在の妊娠週数は「{week}週」だよ。", reply_token)
+                else:
+                    reply_to_line("🐏 ごめんね、まだ妊娠週数は聞けていないの。", reply_token)
+                return "OK"
 
         if user_message in ["今の名前は？", "呼び名は？", "名前教えて！"]:
             name = user_sessions.get(user_id, {}).get("name")
