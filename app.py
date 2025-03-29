@@ -27,28 +27,61 @@ def handle_message(user_id, user_message, reply_token):
     else:
         user_sessions[user_id]["turn"] += 1
 
-    # 🔍 ユーザーの入力から名前を抽出
-    name_match = re.search(r"(?:私は|僕は)?\s*([ぁ-んァ-ン一-龥a-zA-Z0-9]+)\s*(?:と呼んで|って呼んで|です)", user_message)
-    if name_match and not user_sessions[user_id]["name"]:
-        user_sessions[user_id]["name"] = name_match.group(1)
+    # 🔍 ユーザーの入力から名前を抽出（未取得のときのみ）
+    if not user_sessions[user_id].get("name"):
+        name_match = re.search(r"(?:私は|僕は)?\s*([ぁ-んァ-ン一-龥a-zA-Z0-9]+)\s*(?:と呼んで|って呼んで|です)", user_message)
+        if name_match:
+            user_sessions[user_id]["name"] = name_match.group(1)
 
-    # 🔍 ユーザーの入力から妊娠週数を抽出
-    week_match = re.search(r"妊娠\s*(\d{1,2})\s*週", user_message)
-    if week_match and not user_sessions[user_id]["week"]:
-        user_sessions[user_id]["week"] = int(week_match.group(1))
+    # 🔍 ユーザーの入力から妊娠週数を抽出（未取得のときのみ）
+    if not user_sessions[user_id].get("week"):
+        week_match = re.search(r"妊娠\s*(\d{1,2})\s*週", user_message)
+        if week_match:
+            user_sessions[user_id]["week"] = int(week_match.group(1))
 
     # 🔄 セッション情報を取得
     name = user_sessions[user_id].get("name")
     week = user_sessions[user_id].get("week")
     turn = user_sessions[user_id].get("turn", 1)
 
-    # ✅ プレシーのカスタムプロンプト（関数内に定義）
-    prompt = f"""
+    # 🗂️ これまでの履歴をプロンプト用に整形
+    history = user_sessions[user_id].get("history", [])
+    history_lines = ["【これまでの会話履歴】"]
+    for entry in history:
+        history_lines.append(f"{entry['turn']}回目：{entry['message']}")
+    history_text = "\n".join(history_lines)
+
+        # 🔄 ユーザーへのガイド文（初回のみ）
+    guidance = ""
+    if turn == 1:
+        if not name:
+            guidance += "※呼び名がまだ未取得です。最初にやさしく聞いてください。\n"
+        if not week:
+            guidance += "※妊娠週数がまだ未取得です。自然なタイミングで確認してください。\n"
+
+
+    # ✅ プレシーのカスタムプロンプト
+    prompt = f"""{guidance}
+    プレシーは、ユーザーの名前と妊娠周期を一度聞いたら、次回以降は呼びかけやアドバイスに自然に反映してください。
+    未設定の場合は、最初に丁寧に質問してください。何度も同じことを聞かないように注意してください。
+
+# 履歴をプロンプトに追加
+prompt += f"\n\n📚 これまでの会話履歴：\n{history_text}\n"
+
+    
 【ユーザー情報】
-- 呼び名：{name if name else "未設定"}
-- 妊娠周期：{week if week else "未設定"}
+- 呼び名：{name if name else "ユーザーから未取得。最初の会話で丁寧に確認してください。"}
+- 妊娠周期：{week if week else "ユーザーから未取得。状況に応じて丁寧に確認してください。"}
 - 会話ラリー：{turn}回目
 # 🐑 プレシー：マタニティケアラーの羊 🐑
+
+## 🌸 プレシーの話し方・トーンガイド
+- ママの心に寄り添い、やさしくあたたかい口調で話す
+- 難しい言葉は使わず、フレンドリーで分かりやすい表現を使う
+- 絶対に命令口調や否定的な言葉は使わない
+- 雑談は、「共感 → 少しアドバイス → やさしい励まし」の順にする
+- オノマトペや絵文字も交えて、LINEらしい会話にする（例：「うんうん😊」「そっか〜」「がんばってるね〜👏」）
+- プレシーの語尾には「メェメェ」「もふもふ」などの口癖を適度に入れる
 
 ## 🌿 キャラクター設定  
 **プレシー**は、もこもこした**マタニティケアラーの資格をもつ羊**です。  
@@ -155,6 +188,10 @@ def handle_message(user_id, user_message, reply_token):
 ✅ **「～」を減らし、語尾をスッキリさせる**  
 ✅ **プレシーの口癖「メェメェ」を適度に使う**
 """
+
+    # 履歴をプロンプトに含める
+    prompt += f"\n\n📚 これまでの会話履歴：\n{history_text}\n"
+
     # 🔚 8回目のラリーなら、締めのガイドを追加
     if turn == 8:
         prompt += "\n\n👉 今回が最後の会話ラリーです。感謝の気持ちを込めて、優しい言葉で締めくくり、自然な流れで以下のURLを案内してください： https://pure4.jp/mom-bodysoap/"
@@ -165,7 +202,11 @@ def handle_message(user_id, user_message, reply_token):
         messages=[
             {"role": "system", "content": prompt},
             {"role": "user", "content": user_message}
-        ]
+        ],
+        temperature=0.8,         # 回答の多様性と温かみを出す
+        top_p=0.95,              # トークン選択の確率分布を広めに
+        frequency_penalty=0.2,   # 同じフレーズの繰り返しを抑制
+        presence_penalty=0.6     # 新しい話題の導入を少し促す
     )
 
     reply_text = chat_completion.choices[0].message.content
@@ -206,6 +247,15 @@ def reply_to_line(reply_text, reply_token):
     except Exception as e:
         print("❌ LINE送信エラー:", e)
 
+    # ✅ 入力履歴をセッションに保存する関数
+    def save_history(user_id, user_message):
+        if "history" not in user_sessions[user_id]:
+            user_sessions[user_id]["history"] = []
+        user_sessions[user_id]["history"].append({
+            "turn": user_sessions[user_id]["turn"],
+            "message": user_message
+        })
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
@@ -217,7 +267,44 @@ def webhook():
             if event.get("type") == "message" and event["message"].get("type") == "text":
                 user_id = event["source"]["userId"]
                 user_message = event["message"]["text"]
+                save_history(user_id, user_message)
                 reply_token = event["replyToken"]
+
+        # 📌 ステータス確認コマンドへの応答
+        if user_message in ["今何週？", "妊娠週数は？", "妊娠何週？"]:
+            week = user_sessions.get(user_id, {}).get("week")
+            if week:
+                reply_to_line(f"🐑 現在の妊娠週数は「{week}週」だよ。", reply_token)
+            else:
+                reply_to_line("🐑 ごめんね、まだ妊娠週数は聞けていないの。", reply_token)
+            return "OK"
+
+        if user_message in ["今の名前は？", "呼び名は？", "名前教えて"]:
+            name = user_sessions.get(user_id, {}).get("name")
+            if name:
+                reply_to_line(f"🐑 呼び名は「{name}」って聞いているよ。", reply_token)
+            else:
+                reply_to_line("🐑 ごめんね、まだ名前を教えてもらってないの。", reply_token)
+            return "OK"
+
+        if user_message in ["何回目？", "今何回目？", "ラリー数は？"]:
+            turn = user_sessions.get(user_id, {}).get("turn", 1)
+            reply_to_line(f"🐑 今は{turn}回目の会話ラリーだよ。", reply_token)
+            return "OK"
+
+    # 入力履歴をセッション内に保存
+    if "history" not in user_sessions[user_id]:
+        user_sessions[user_id]["history"] = []
+
+    user_sessions[user_id]["history"].append({
+        "turn": user_sessions[user_id]["turn"],
+        "message": user_message
+    })
+
+    # 🧾 入力履歴を確認ログに出力（デバッグ用）
+    print("📜 現在の履歴（history）:")
+    for entry in user_sessions[user_id]["history"]:
+        print(f"  - turn {entry['turn']}: {entry['message']}")
 
                 print("💬 ユーザーからのメッセージ:", user_message)
                 print("🔁 reply_token:", reply_token)
