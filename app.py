@@ -262,20 +262,20 @@ def webhook():
         print("✅ 受信データ:", data)
         events = data.get("events", [])
 
-        for event in events:
-            if event.get("type") == "message" and event["message"].get("type") == "text":
-                user_id = event["source"]["userId"]
-                user_message = event["message"]["text"]
-                reply_token = event["replyToken"]
+    for event in events:
+        if event.get("type") == "message" and event["message"].get("type") == "text":
+            user_id = event["source"]["userId"]
+            user_message = event["message"]["text"]
+            reply_token = event["replyToken"]
 
-     　　       # ⬇⬇⬇ ここに追加 ⬇⬇⬇
-               if user_id not in user_sessions:
-                   user_sessions[user_id] = {
-                       "name": None,
-                       "week": None,
-                       "turn": 1,
-                       "history": []
-                   }
+            # ⬇⬇⬇ ここに追加 ⬇⬇⬇
+            if user_id not in user_sessions:
+                user_sessions[user_id] = {
+                    "name": None,
+                    "week": None,
+                    "turn": 1,
+                    "history": []
+                }
 
                 # 👇 ステータス確認コマンドを処理（早期 return で処理分岐）
                 if user_message in ["今何週？", "妊娠週数は？", "妊娠何週？"]:
