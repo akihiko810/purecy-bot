@@ -5,6 +5,14 @@ import requests
 import threading
 import re
 
+# ⬇️ この位置に追加！
+def save_history(user_id, user_message):
+    if "history" not in user_sessions[user_id]:
+        user_sessions[user_id]["history"] = []
+    user_sessions[user_id]["history"].append({
+        "turn": user_sessions[user_id]["turn"],
+        "message": user_message
+    })
 
 app = Flask(__name__)
 # ユーザーごとのセッション情報（名前・妊娠周期・現在の会話ラリー回数など）を保存
@@ -246,15 +254,6 @@ def reply_to_line(reply_text, reply_token):
         print("📬 LINEレスポンス:", response.status_code, response.text)
     except Exception as e:
         print("❌ LINE送信エラー:", e)
-
-    # ✅ 入力履歴をセッションに保存する関数
-    def save_history(user_id, user_message):
-        if "history" not in user_sessions[user_id]:
-            user_sessions[user_id]["history"] = []
-        user_sessions[user_id]["history"].append({
-            "turn": user_sessions[user_id]["turn"],
-            "message": user_message
-        })
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
