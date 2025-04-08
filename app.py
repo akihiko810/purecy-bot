@@ -65,9 +65,10 @@ def handle_message(user_id, user_message, reply_token):
     if turn == 1:
         if not name:
             guidance += "※呼び名がまだ未取得です。最初にやさしく聞いてください。\n"
+        elif name:
+            guidance += f"今回の会話では、{name}さんの名前を呼んで自然にスタートしてください。\n"
         if not week:
             guidance += "※妊娠週数がまだ未取得です。自然なタイミングで確認してください。\n"
-
 
     # ✅ プレシーのカスタムプロンプト
     prompt = f"""{guidance}
@@ -268,6 +269,14 @@ def webhook():
                 user_id = event["source"]["userId"]
                 user_message = event["message"]["text"]
                 reply_token = event["replyToken"]
+
+                # 🌱 ユーザーが名前を教えてくれたときの処理
+                if "私の名前は" in user_message or "名前は" in user_message:
+                    name_match = re.search(r"(?:私の名前は|名前は)(.+)", user_message)
+                    if name_match:
+                        user_sessions[user_id]["name"] = name_match.group(1).strip()
+                        reply_to_line(f"🐏 「{user_sessions[user_id]['name']}」って呼べばいいかな？覚えておくね！", reply_token)
+                        return "OK"
 
                 # 👇 ここでセッション初期化を保証
                 if user_id not in user_sessions:
