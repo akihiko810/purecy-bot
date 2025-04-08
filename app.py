@@ -305,4 +305,5 @@ def webhook():
 
     except Exception as e:
         print(f"❌ Error: {e}")
+　　　　 traceback.print_exc()  # ← 追加！
         return "Internal Server Error", 500
