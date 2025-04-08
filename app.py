@@ -64,11 +64,11 @@ def handle_message(user_id, user_message, reply_token):
     guidance = ""
     if turn == 1:
         if not name:
-            guidance += "※呼び名がまだ未取得です。最初にやさしく聞いてください。\n"
+            guidance += "※まだ名前聞いてなかったね！最初にやさしく聞いてみてね。\n"
         elif name:
-            guidance += f"今回の会話では、{name}さんの名前を呼んで自然にスタートしてください。\n"
+            guidance += f"※今回は {name} ちゃんって呼んでスタートしよっか。\n"
         if not week:
-            guidance += "※妊娠週数がまだ未取得です。自然なタイミングで確認してください。\n"
+            guidance += "※妊娠週数まだわかんないから、タイミング見てゆるっと聞いてみてね。\n"
 
     # ✅ プレシーのカスタムプロンプト
     prompt = f"""{guidance}
