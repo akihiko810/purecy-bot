@@ -4,6 +4,7 @@ import os
 import requests
 import threading
 import re
+import traceback
 
 # ⬇️ この位置に追加！
 def save_history(user_id, user_message):
@@ -305,5 +306,5 @@ def webhook():
 
     except Exception as e:
         print(f"❌ Error: {e}")
-　　　　 traceback.print_exc()  # ← 追加！
+        traceback.print_exc()
         return "Internal Server Error", 500
