@@ -5,6 +5,7 @@ import requests
 import threading
 import re
 import traceback
+import datetime
 
 # ⬇️ この位置に追加！
 def save_history(user_id, user_message):
@@ -14,6 +15,19 @@ def save_history(user_id, user_message):
         "turn": user_sessions[user_id]["turn"],
         "message": user_message
     })
+
+def cleanup_old_sessions():
+    now = datetime.datetime.now()
+    expired_users = []
+
+    for user_id, session in user_sessions.items():
+        last_active = session.get("last_active")
+        if last_active and (now - last_active).days >= 7:
+            expired_users.append(user_id)
+
+    for user_id in expired_users:
+        del user_sessions[user_id]
+        print(f"🧹 セッション削除: {user_id}")
 
 app = Flask(__name__)
 # ユーザーごとのセッション情報（名前・妊娠周期・現在の会話ラリー回数など）を保存
@@ -31,10 +45,13 @@ def handle_message(user_id, user_message, reply_token):
         user_sessions[user_id] = {
             "name": None,
             "week": None,
-            "turn": 1
+            "turn": 1,
+            "history": [],
+            "last_active": datetime.datetime.now()
         }
     else:
         user_sessions[user_id]["turn"] += 1
+        user_sessions[user_id]["last_active"] = datetime.datetime.now()
 
     # 🔍 ユーザーの入力から名前を抽出（未取得のときのみ）
     if not user_sessions[user_id].get("name"):
@@ -597,6 +614,8 @@ def reply_to_line(reply_text, reply_token):
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
+        cleanup_old_sessions() 
+        
         data = request.get_json()
         print("✅ 受信データ:", data)
         events = data.get("events", [])
