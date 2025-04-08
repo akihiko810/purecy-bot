@@ -269,6 +269,15 @@ def webhook():
                 user_message = event["message"]["text"]
                 reply_token = event["replyToken"]
 
+                # 👇 ここでセッション初期化を保証
+                if user_id not in user_sessions:
+                    user_sessions[user_id] = {
+                        "name": None,
+                        "week": None,
+                        "turn": 1,
+                        "history": []
+                    }
+
                 # 👇 ステータス確認コマンドを処理（早期 return で処理分岐）
                 if user_message in ["今何週？", "妊娠週数は？", "妊娠何週？"]:
                     week = user_sessions.get(user_id, {}).get("week")
